@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import ReactFlow, { useNodesState, useEdgesState, addEdge, MiniMap, Controls, Background} from 'reactflow';
 import styled, { ThemeProvider } from 'styled-components';
 import 'reactflow/dist/style.css';
@@ -47,6 +47,10 @@ const Flow = () => {
   //useNodesState and useEdgesState are used to update the nodes and edges
   const [nodes, setNodes, onNodesChange] = useNodesState(nodeStack);
   const [edges, setEdges, onEdgesChange] = useEdgesState(edgeStack);
+  const [nodeLabel, setNodeLabel] = useState('');
+  const [showInput, setShowInput] = useState(false);
+  const [selectedNode, setSelectedNode] = useState(null);
+
 
   //onConnect is used to add a new edge when a state is connected to another state
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -57,29 +61,64 @@ const Flow = () => {
     const newNode = {
       id: `${nodes.length + 1}`,
       position: { x: maxPos + 250, y: 250},
-      data: { label: `Node ${nodes.length + 1}` },
+      data: { label: "New State" },
       type: 'custom',
     };
     setNodes([...nodes, newNode]);
+    setSelectedNode(newNode.id);
+    setShowInput(true);
   };
+
+  const handleChange = (event) => {
+    setNodeLabel(event.target.value);
+    setNodes((nodes) =>
+      nodes.map((node) =>
+        node.id === selectedNode
+          ? { ...node, data: { ...node.data, label: event.target.value } } // update label of selected node
+          : node
+      )
+    );
+  };
+
+  const handleNodeClick = (event, node) => { 
+    setSelectedNode(node.id); // set clicked node as selected node
+    setNodeLabel(node.data.label); // set the input value to the label of the selected node
+    setShowInput(true); // show the input field
+  };
+
+  console.log(selectedNode);
 
   return (
       <div className='app'>
         <div className="flow">
+        <button onClick={handleAddNode}>Create Node</button>
         <ReactFlowStyled
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
         >
         <ControlsStyled />
         </ReactFlowStyled>
         </div>
-        <div className="button-div">
-          <button onClick={handleAddNode}>Add Node</button>
+        {showInput && (
+        <div className="inputs-div">
+          <input
+            type="text"
+            placeholder="Enter Node Name"
+            value={nodeLabel}
+            onChange={handleChange}
+            onBlur={() => {
+              setShowInput(false); // hide the input field on blur
+              setSelectedNode(null); // clear the selected node
+              setNodeLabel(''); // clear the input value
+            }}        
+          />
         </div>
+        )}
       </div>
   );
 };
