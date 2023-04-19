@@ -49,7 +49,7 @@ const Flow = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(edgeStack);
   const [nodeLabel, setNodeLabel] = useState('');
   const [showInput, setShowInput] = useState(false);
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(0);
 
 
   //onConnect is used to add a new edge when a state is connected to another state
@@ -86,6 +86,20 @@ const Flow = () => {
     setShowInput(true); // show the input field
   };
 
+  const handleVirtualConnection = (selectedDropdown) => {
+    console.log("Dopdown");
+    console.log(selectedDropdown.value);
+    console.log("Selected Node");
+    console.log(selectedNode.id);
+    const newEdge = {id: `${edges.length + 1}`, source: `${selectedNode.id}`, target: `${selectedDropdown.id}`, label: 'State Timeout'};
+    setEdges([...edges, newEdge]);
+  }
+
+    
+
+  const allNodes = nodes.map((node) => ({value: node.id, label: node.data.label}));
+  const [checked, setChecked] = useState(false);
+
   console.log(selectedNode);
 
   return (
@@ -117,6 +131,25 @@ const Flow = () => {
               setNodeLabel(''); // clear the input value
             }}        
           />
+          <label>
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={(event) => setChecked(event.target.checked)}
+              />
+              Set to 
+            <select disabled={!checked} onChange={(event) => handleVirtualConnection(event.target.value)}>
+              <option></option>
+            {allNodes.map((node) => (
+              <option key={node.id} value={node.id}>
+                {node.label}
+              </option>
+              ))}
+            </select>
+             after
+            <input type="number" disabled={!checked} />
+             hours
+          </label>
         </div>
         )}
       </div>

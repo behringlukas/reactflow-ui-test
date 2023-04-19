@@ -12,6 +12,8 @@
 
 .inputs-div {
   margin: 80px 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
