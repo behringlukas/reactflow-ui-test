@@ -50,6 +50,7 @@ const Flow = () => {
   const [nodeLabel, setNodeLabel] = useState('');
   const [showInput, setShowInput] = useState(false);
   const [selectedNode, setSelectedNode] = useState(0);
+  const [existingTransitionEdges, setExistingTransitionEdges] = useState([]);
 
 
   //onConnect is used to add a new edge when a state is connected to another state
@@ -86,21 +87,37 @@ const Flow = () => {
     setShowInput(true); // show the input field
   };
 
-  const handleVirtualConnection = (selectedDropdown) => {
-    console.log("Dopdown");
-    console.log(selectedDropdown.value);
-    console.log("Selected Node");
-    console.log(selectedNode.id);
-    const newEdge = {id: `${edges.length + 1}`, source: `${selectedNode.id}`, target: `${selectedDropdown.id}`, label: 'State Timeout'};
-    setEdges([...edges, newEdge]);
-  }
+  const [selectedDropdown, setSelectedDropdown] = useState(null);
 
-    
+  const handleDropdownChange = (event) => {
+    const newDropdown = event.target.value;
+    if (selectedDropdown !== newDropdown) {
+      handleVirtualConnection(newDropdown);
+    }
+  };
+
+  const handleVirtualConnection = (newDropdown) => {
+    // Remove existing edge that was created with previous dropdown selection
+    const existingEdge = existingTransitionEdges.find(edge => (edge.source === selectedNode && edge.target === selectedDropdown) || (edge.target === selectedNode && edge.source === selectedDropdown));
+    const filteredEdges = existingEdge && existingEdge.source === selectedNode ? edges.filter(edge => edge.target !== selectedDropdown) : edges.filter(edge => edge.source !== selectedDropdown);
+    setEdges(filteredEdges);
+  
+    // Create new edge with the new dropdown selection
+    const newEdge = {
+      id: `${filteredEdges.length + 1}`,
+      source: `${selectedNode}`,
+      target: `${newDropdown}`,
+      label: 'State Timeout'
+    };
+    setEdges([...filteredEdges, newEdge]);
+    setExistingTransitionEdges([...existingTransitionEdges.filter(edge => edge !== existingEdge), newEdge]);
+  
+    // Update selected dropdown
+    setSelectedDropdown(newDropdown);
+  };
 
   const allNodes = nodes.map((node) => ({value: node.id, label: node.data.label}));
   const [checked, setChecked] = useState(false);
-
-  console.log(selectedNode);
 
   return (
       <div className='app'>
@@ -138,10 +155,10 @@ const Flow = () => {
               onChange={(event) => setChecked(event.target.checked)}
               />
               Set to 
-            <select disabled={!checked} onChange={(event) => handleVirtualConnection(event.target.value)}>
+            <select disabled={!checked} onChange={handleDropdownChange}>
               <option></option>
             {allNodes.map((node) => (
-              <option key={node.id} value={node.id}>
+              <option key={node.id} value={node.value}>
                 {node.label}
               </option>
               ))}
