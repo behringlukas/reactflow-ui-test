@@ -1,7 +1,7 @@
 export const globalTheme = {
   bg: "#ffffff",
   primary: "#5c9dde",
-  nodeBg: "#f9f9f9",
+  nodeBg: "#ffffff",
   nodeColor: "#2d4655",
   nodeBorder: "#dbdbdb",
   controlsBg: "#ffffff",

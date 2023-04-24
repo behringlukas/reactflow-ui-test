@@ -21,3 +21,9 @@ body {
   padding: 0;
   overflow: hidden;
 }
+
+.controls {
+  position: absolute;
+  bottom: 40px;
+}
+

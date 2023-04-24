@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import ReactFlow, { useNodesState, useEdgesState, addEdge, MiniMap, Controls, Background} from 'reactflow';
+import ReactFlow, { useNodesState, useEdgesState, addEdge, MiniMap, Controls, Background, MarkerType} from 'reactflow';
 import styled, { ThemeProvider } from 'styled-components';
 import 'reactflow/dist/style.css';
 import 'reactflow/dist/base.css';
@@ -12,9 +12,9 @@ import InitialNode from './initialNode.jsx';
 //initial nodes and edges when the page is loaded
 const nodeStack = [
   { id: '1', position: { x: 250, y: 250 }, data: { label: 'Initial' }, type: 'initial' },
-  { id: '2', position: { x: 500, y: 250 }, data: { label: 'Draft' }, type: 'custom' }
+  { id: '2', position: { x: 500, y: 250 }, data: { label: 'Draft'}, type: 'custom' }
 ];
-const edgeStack = [{ id: 'e1-2', source: '1', target: '2', label: 'Start' }];
+const edgeStack = [{ id: 'e1-2', source: '1', target: '2', label: 'Start', markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20}, style: {strokeWidth: 1.5} }];
 
 const nodeTypes = {
   custom: CustomNode,
@@ -51,10 +51,20 @@ const Flow = () => {
   const [showInput, setShowInput] = useState(false);
   const [selectedNode, setSelectedNode] = useState(0);
   const [existingTransitionEdges, setExistingTransitionEdges] = useState([]);
-
+  const [stateColor, setStateColor] = useState("#000000")
 
   //onConnect is used to add a new edge when a state is connected to another state
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const onConnect = useCallback((params) => {
+    const edge = {
+      id: `${params.source}-${params.target}`,
+      source: params.source,
+      target: params.target,
+      markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20}, 
+      style: {strokeWidth: 1.5}
+    };
+    setEdges((eds) => [...eds, edge]);
+  }, [setEdges]);
+
 
   //handleAddNode is used to add a new state
   const handleAddNode = () => {
@@ -62,7 +72,7 @@ const Flow = () => {
     const newNode = {
       id: `${nodes.length + 1}`,
       position: { x: maxPos + 250, y: 250},
-      data: { label: "New State" },
+      data: { label: "New State", color: {stateColor} },
       type: 'custom',
     };
     setNodes([...nodes, newNode]);
@@ -75,7 +85,7 @@ const Flow = () => {
     setNodes((nodes) =>
       nodes.map((node) =>
         node.id === selectedNode
-          ? { ...node, data: { ...node.data, label: event.target.value } } // update label of selected node
+          ? { ...node, data: { ...node.data, label: event.target.value} } // update label of selected node
           : node
       )
     );
@@ -85,6 +95,7 @@ const Flow = () => {
     setSelectedNode(node.id); // set clicked node as selected node
     setNodeLabel(node.data.label); // set the input value to the label of the selected node
     setShowInput(true); // show the input field
+    setStateColor(node.data.color);
   };
 
   const [selectedDropdown, setSelectedDropdown] = useState(null);
@@ -107,7 +118,7 @@ const Flow = () => {
       id: `${filteredEdges.length + 1}`,
       source: `${selectedNode}`,
       target: `${newDropdown}`,
-      label: 'State Timeout'
+      label: 'State Timeout',
     };
     setEdges([...filteredEdges, newEdge]);
     setExistingTransitionEdges([...existingTransitionEdges.filter(edge => edge !== existingEdge), newEdge]);
@@ -118,6 +129,17 @@ const Flow = () => {
 
   const allNodes = nodes.map((node) => ({value: node.id, label: node.data.label}));
   const [checked, setChecked] = useState(false);
+
+  const handleStateColorChange = (event) => {
+    setStateColor(event.target.value);
+    setNodes((nodes) =>
+      nodes.map((node) =>
+        node.id === selectedNode
+          ? { ...node, data: { ...node.data, color: event.target.value} } // update label of selected node
+          : node
+      )
+    );
+  };
 
   return (
       <div className='app'>
@@ -132,7 +154,9 @@ const Flow = () => {
           onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
         >
-        <ControlsStyled />
+        <div className='controls'>
+          <ControlsStyled />
+        </div>
         </ReactFlowStyled>
         </div>
         {showInput && (
@@ -148,6 +172,9 @@ const Flow = () => {
               setNodeLabel(''); // clear the input value
             }}        
           />
+          <label>
+            <input type="color" id="color" name="color" value={stateColor} onChange={handleStateColorChange}></input>
+          </label>
           <label>
             <input
               type="checkbox"

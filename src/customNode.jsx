@@ -1,6 +1,7 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import styled from "styled-components";
+import './App.css';
 
 const Node = styled.div`
   padding: 10px 20px;
@@ -19,13 +20,34 @@ const Node = styled.div`
   }
 `;
 
+const NodeContent = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const NodeLabel = styled.div`
+  flex: 1;
+`;
+
+const Circle = styled.svg`
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+`;
+
 export default ({ data, selected }) => {
+  console.log("Test" + data.color);
   return (
     <Node selected={selected}>
       <Handle type="target" position={Position.Left} />
-      <div>
-        <strong>{data.label}</strong>
-      </div>
+      <NodeContent>
+        <NodeLabel>
+          <strong>{data.label}</strong>
+        </NodeLabel>
+          <Circle viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="50" fill={data.color}/>
+          </Circle>
+      </NodeContent>
       <Handle type="source" position={Position.Right} />
     </Node>
   );
